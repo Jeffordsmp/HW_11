@@ -1,38 +1,25 @@
-var fs = require("fs");
+const router = require("express").Router();
+const store = require("../db/store");
 
-module.exports = function(app) {
+router.get("/notes", function(req, res) {
+  store
+    .getNotes()
+    .then(notes => res.json(notes))
+    .catch(err => res.status(500).json(err));
+});
 
-  app.get("/api/notes", function(req, res) {
-    fs.readFile(__dirname + "/index.html", function(err, data) {
-      if (err) {
-        res.writeHead(500, { "Content-Type": "text/html" });
-        res.end("<html><head><title>Oops</title></head><body><h1>Oops, there was an error</h1></html>");
-      }
-      else {
-        // We then respond to the client with the HTML page by specifically telling the browser that we are delivering
-        // an html file.
-        res.writeHead(200, { "Content-Type": "text/html" });
-        res.end(data);
-      }
-    });
-  });
+router.post("/notes", (req, res) => {
+  store
+    .addNote(req.body)
+    .then((note) => res.json(note))
+    .catch(err => res.status(500).json(err));
+});
 
-  app.post("/api/notes", function(req, res) {
-   if (tableData.length < 5) {
-      tableData.push(req.body);
-      res.json(true);
-    }
-    else {
-      waitListData.push(req.body);
-      res.json(false);
-    }
-  });
+router.delete("/notes/:id", function(req, res) {
+  store
+    .removeNote(req.params.id)
+    .then(() => res.json({ ok: true }))
+    .catch(err => res.status(500).json(err));
+});
 
-  app.delete("/api/notes/:id", function(req, res) {
-    // Empty out the arrays of data
-    tableData.length = 0;
-    waitListData.length = 0;
-
-    res.json({ ok: true });
-  });
-};
+module.exports = router;
